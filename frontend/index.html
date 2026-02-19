@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Management System</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.4);
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    header span.badge {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    #student-count {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      padding: 0.6rem 1.2rem;
+    }
+    .btn-primary:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-danger { background: #ef4444; color: #fff; padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+    .btn-danger:hover { background: #dc2626; }
+
+    .btn-edit { background: #f59e0b; color: #000; padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+    .btn-edit:hover { background: #d97706; }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #0f172a;
+    }
+
+    th {
+      padding: 1rem 1.2rem;
+      text-align: left;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6366f1;
+      font-weight: 700;
+    }
+
+    td {
+      padding: 0.9rem 1.2rem;
+      border-top: 1px solid #334155;
+      font-size: 0.88rem;
+      color: #cbd5e1;
+    }
+
+    tr:hover td { background: #334155; }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-right: 0.5rem;
+      color: #fff;
+      vertical-align: middle;
+    }
+
+    .course-tag {
+      background: rgba(99,102,241,0.15);
+      color: #a5b4fc;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border: 1px solid rgba(99,102,241,0.3);
+    }
+
+    /* Modal */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.active { display: flex; }
+
+    .modal {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    }
+
+    .modal h2 { font-size: 1.2rem; margin-bottom: 1.5rem; color: #f1f5f9; }
+
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; font-size: 0.8rem; color: #94a3b8; margin-bottom: 0.4rem; font-weight: 600; }
+    .form-group input, .form-group select {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #6366f1; }
+    .form-group select option { background: #1e293b; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 1.5rem; }
+    .btn-cancel { background: #334155; color: #e2e8f0; padding: 0.6rem 1.2rem; }
+    .btn-cancel:hover { background: #475569; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 0.8rem 1.4rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #fff;
+      z-index: 200;
+      display: none;
+      animation: slideUp 0.3s ease;
+    }
+    #toast.success { background: #10b981; }
+    #toast.error { background: #ef4444; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #475569;
+    }
+
+    .spinner {
+      text-align: center;
+      padding: 2rem;
+      color: #6366f1;
+      font-size: 0.9rem;
+    }
+
+    .api-link {
+      color: #6366f1;
+      text-decoration: none;
+      font-size: 0.82rem;
+    }
+    .api-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>🎓 Student Management</h1>
+  <span class="badge">Microservice</span>
+  <a class="api-link" href="http://localhost:5000/swagger" target="_blank" style="margin-left: auto; color: rgba(255,255,255,0.7);">📋 Swagger Docs ↗</a>
+</header>
+
+<div class="container">
+  <div class="top-bar">
+    <div id="student-count">Loading...</div>
+    <button class="btn-primary" onclick="openModal()">+ Add Student</button>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Email</th>
+          <th>Age</th>
+          <th>Course</th>
+          <th>Enrolled</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="student-tbody">
+        <tr><td colspan="6" class="spinner">⏳ Loading students...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <h2 id="modal-title">Add New Student</h2>
+    <input type="hidden" id="student-id" />
+    <div class="form-row">
+      <div class="form-group">
+        <label>First Name *</label>
+        <input type="text" id="firstName" placeholder="e.g. Alice" />
+      </div>
+      <div class="form-group">
+        <label>Last Name *</label>
+        <input type="text" id="lastName" placeholder="e.g. Johnson" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email *</label>
+      <input type="email" id="email" placeholder="alice@example.com" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Age *</label>
+        <input type="number" id="age" placeholder="20" min="1" max="100" />
+      </div>
+      <div class="form-group">
+        <label>Course *</label>
+        <input type="text" id="course" placeholder="e.g. Computer Science" />
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = 'http://localhost:5000/api/students';
+
+  const avatarColors = ['#6366f1','#8b5cf6','#ec4899','#10b981','#f59e0b','#3b82f6','#ef4444'];
+  function getColor(name) {
+    let sum = 0;
+    for (let c of name) sum += c.charCodeAt(0);
+    return avatarColors[sum % avatarColors.length];
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = type;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+
+  async function fetchStudents() {
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error('Failed to fetch');
+      const students = await res.json();
+      renderTable(students);
+      document.getElementById('student-count').textContent = `${students.length} student${students.length !== 1 ? 's' : ''} enrolled`;
+    } catch (e) {
+      document.getElementById('student-tbody').innerHTML = `<tr><td colspan="6" class="empty-state">⚠️ Cannot connect to API. Make sure the .NET API is running on port 5000.</td></tr>`;
+      document.getElementById('student-count').textContent = 'API offline';
+    }
+  }
+
+  function renderTable(students) {
+    const tbody = document.getElementById('student-tbody');
+    if (!students.length) {
+      tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No students found. Add one above!</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = students.map(s => {
+      const initials = (s.firstName[0] + s.lastName[0]).toUpperCase();
+      const color = getColor(s.firstName);
+      const date = new Date(s.enrolledDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      return `
+        <tr>
+          <td>
+            <span class="avatar" style="background:${color}">${initials}</span>
+            <strong>${s.firstName} ${s.lastName}</strong>
+          </td>
+          <td>${s.email}</td>
+          <td>${s.age}</td>
+          <td><span class="course-tag">${s.course}</span></td>
+          <td>${date}</td>
+          <td>
+            <button class="btn-edit" onclick="editStudent(${s.id})">✏️ Edit</button>
+            <button class="btn-danger" onclick="deleteStudent(${s.id}, '${s.firstName} ${s.lastName}')">🗑️ Delete</button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function openModal(student = null) {
+    document.getElementById('modal-title').textContent = student ? 'Edit Student' : 'Add New Student';
+    document.getElementById('student-id').value = student?.id || '';
+    document.getElementById('firstName').value = student?.firstName || '';
+    document.getElementById('lastName').value = student?.lastName || '';
+    document.getElementById('email').value = student?.email || '';
+    document.getElementById('age').value = student?.age || '';
+    document.getElementById('course').value = student?.course || '';
+    document.getElementById('modal-overlay').classList.add('active');
+    document.getElementById('firstName').focus();
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('active');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  async function editStudent(id) {
+    try {
+      const res = await fetch(`${API}/${id}`);
+      const student = await res.json();
+      openModal(student);
+    } catch { showToast('Failed to load student', 'error'); }
+  }
+
+  async function saveStudent() {
+    const id = document.getElementById('student-id').value;
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const age = parseInt(document.getElementById('age').value);
+    const course = document.getElementById('course').value.trim();
+
+    if (!firstName || !lastName || !email || !age || !course) {
+      showToast('Please fill in all fields', 'error'); return;
+    }
+
+    const payload = { firstName, lastName, email, age, course };
+    const isEdit = !!id;
+    if (isEdit) payload.id = parseInt(id);
+
+    try {
+      const res = await fetch(isEdit ? `${API}/${id}` : API, {
+        method: isEdit ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error();
+      showToast(isEdit ? '✅ Student updated!' : '✅ Student added!');
+      closeModal();
+      fetchStudents();
+    } catch { showToast('Failed to save student', 'error'); }
+  }
+
+  async function deleteStudent(id, name) {
+    if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      showToast(`🗑️ ${name} deleted`);
+      fetchStudents();
+    } catch { showToast('Failed to delete student', 'error'); }
+  }
+
+  // Init
+  fetchStudents();
+</script>
+</body>
+</html>
